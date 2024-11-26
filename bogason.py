@@ -1,6 +1,8 @@
 import time
 import json
 import threading
+import tkinter as tk
+from tkinter import ttk
 from tkinter import *
 from tkinter import ttk, filedialog, messagebox
 from selenium import webdriver
@@ -20,6 +22,7 @@ class WebScraper:
     def __init__(self):
         self.port_counter = 9223  # Başlangıç portu
         self.driver = self._initialize_driver()
+      
 
     def _initialize_driver(self):
         """WebDriver'ı başlatır ve ayarları yapar."""
@@ -35,6 +38,26 @@ class WebScraper:
         driver.maximize_window()
         return driver
 
+    def add_url(self):
+     new_url = simpledialog.askstring("URL Ekle", "Yeni URL'yi girin:")
+     if new_url:
+        self.urls.append({'url': new_url})
+        self.save_urls()
+        self.populate_tree()  # TreeView'i güncelle
+
+    def delete_url(self):
+       selected_item = self.tree.selection()[0]
+       self.urls.pop(int(selected_item))
+       self.save_urls()
+       self.populate_tree()
+
+    def update_url(self):
+       selected_item = self.tree.selection()[0]
+       new_url = simpledialog.askstring("URL Güncelle", "Yeni URL'yi girin:")
+       if new_url:
+        self.urls[int(selected_item)]['url'] = new_url
+        self.save_urls()
+        self.populate_tree()
 
        
     def _wait_for_element(self, xpath=None, css_selector=None, timeout=10):
@@ -60,6 +83,12 @@ class WebScraper:
         if element:
             return self._get_text(element)
         return "Veri bulunamadı"
+    
+    
+    # Status label'in içine scraping sırasında veri güncellemesi ekleyin
+    def update_status(self, message):
+     self.status_label.config(text=message)
+     self.root.update_idletasks()  # Anlık olarak etiketi güncelle
 
     def scrape_data(self, url):
         logging.info(f"Veri çekme işlemi başlatılıyor: {url}")
@@ -69,6 +98,7 @@ class WebScraper:
 
         self.driver.get(url)
         data = {}
+        self.update_status(f"{url_data['url']} işleniyor...")
 
         try:
             # Örnek veri çekme işlemleri
@@ -252,7 +282,14 @@ class ScraperGUI:
         # Frame oluşturun (self.frame)
         self.frame = ttk.Frame(self.root)
         self.frame.pack(fill="both", expand=True)
-
+        style = ttk.Style()
+        style.configure("TLabel", font=('Arial', 12))
+        style.configure("TButton", font=('Arial', 10))
+        self.status_label = ttk.Label(self.frame, text="Hazır", style="TLabel")
+        # Status label'den sonra progress bar ekleyelim
+        self.progress_var = tk.DoubleVar()
+        self.progress = ttk.Progressbar(self.frame, orient="horizontal", length=400, mode="determinate", variable=self.progress_var)
+        self.progress.grid(row=4, column=0, pady=10)
         # Treeview için sütunları tanımlayın
         columns = (
             "Name", "Ear Tag", "Born", "Breeder", "Free of", "Genetic character",
@@ -279,10 +316,11 @@ class ScraperGUI:
             self.tree.column(col, width=max_width * 10, anchor="center")  # Sütun genişliğini başlık uzunluğuna göre ayarla
 
         # Treeview'i ekleyin ve kaydırma çubuğunu ayarlayın
-        self.tree.pack(fill="both", expand=True)
+        self.tree.grid(row=0, column=0, sticky="nsew")
+
 
         scrollbar = ttk.Scrollbar(self.frame, orient="horizontal", command=self.tree.xview)
-        scrollbar.pack(side="bottom", fill="x")
+        scrollbar.grid(row=1, column=0, sticky="ew")
         self.tree.config(xscrollcommand=scrollbar.set)
         
 
@@ -316,7 +354,7 @@ class ScraperGUI:
     def start_scraping(self):
         thread = threading.Thread(target=self.scrape_all_data)
         thread.start()
-       
+      
 
     def scrape_all_data(self):
         scraper = WebScraper()
