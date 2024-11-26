@@ -35,6 +35,8 @@ class WebScraper:
         driver.maximize_window()
         return driver
 
+
+       
     def _wait_for_element(self, xpath=None, css_selector=None, timeout=10):
         try:
             if xpath:
@@ -221,123 +223,100 @@ def update_progress_bar(progress, max_value):
         progress['value'] = i
         progress.update()
 
+
+
 def save_data_to_file(data, file_format='csv'):
+    # DataFrame oluşturulmadan önce tüm verilerin eksiksiz olduğundan emin ol
+    df = pd.DataFrame(data)
+
+    # Kaydetme işlemi
     if file_format == 'csv':
-        df = pd.DataFrame(data)
         file = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
-        df.to_csv(file, index=False)
+        if file:  # Kullanıcı bir dosya seçtiyse
+            df.to_csv(file, index=False)
     elif file_format == 'excel':
-        df = pd.DataFrame(data)
         file = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx")])
-        df.to_excel(file, index=False)
+        if file:  # Kullanıcı bir dosya seçtiyse
+            df.to_excel(file, index=False)
 
 class ScraperGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Veri Çekme Uygulaması")
-        self.root.state('zoomed')  # Uygulama tam ekran başlar
-        self.urls = []
+        self.root.title("Web Scraper")
 
-        self.load_urls()
-
+        # self.urls boş bir liste olarak tanımlanıyor
+        self.urls = []  # Burada boş bir liste oluşturun
         self.setup_ui()
 
-    def load_urls(self):
-        try:
-            with open('urls.json', 'r', encoding='utf-8') as f:
-                self.urls = json.load(f)
-        except Exception as e:
-            logging.error(f"URL'ler yüklenirken hata oluştu: {e}")
-
     def setup_ui(self):
-        frame = Frame(self.root)
-        frame.pack(fill=BOTH, expand=YES)
+        # Frame oluşturun (self.frame)
+        self.frame = ttk.Frame(self.root)
+        self.frame.pack(fill="both", expand=True)
 
-        self.tree = ttk.Treeview(frame, columns=("URL", "Name", "Ear Tag","Born","Breeder","Free of","Genetic character","Sire line","Mother values","gGZW","MW","FW","FIT","BREEDING VALUES","gGZW2","GZW","MILK MW","MILK MW2","BEEF FW","Net daily gain","Carcass percentage","EUROP trade class","ÖZW","FIT","Longevity","Persistency","Yield improvement","Milking speed","Udder health index","Fertility index","Calving ease direct","Milking behaviour","Somatic cell count","Claw health index","Calving ease maternal","Mastitis","Early fert. disorders","Cysts","Milk fever","Conformation info","Frame","Muscling","Feet & Legs","Udder","Cross height","Body length","Hip width","Body depth","Rump angle","Hock angularity","Hock develop","Pasterns","Hoof height","Fore udder length","Rear udder length","Fore udder attachment","Central ligament","Udder depth","Teat length","Teat thickness","Front teat placement","Rear teat placement","Rear teat direction","Additional teats"), show='headings')
-        self.tree.heading("URL", text="URL")
-        self.tree.heading("Name", text="Name")
-        self.tree.heading("Ear Tag", text="Ear Tag")
-        self.tree.heading("Born", text="Born")
-        self.tree.heading("Breeder", text="Breeder")
-        self.tree.heading("Free of", text="Free of")
-        self.tree.heading("Genetic character", text="Genetic character")
-        self.tree.heading("Sire line", text="Sire line")
-        self.tree.heading("Mother values", text="Mother values")
-        self.tree.heading("gGZW", text="gGZW")
-        self.tree.heading("MW", text="MW")
-        self.tree.heading("FW", text="FW")
-        self.tree.heading("FIT", text="FIT")
-        self.tree.heading("BREEDING VALUES", text="BREEDING VALUES")
-        self.tree.heading("gGZW2", text="gGZW2")
-        self.tree.heading("GZW", text="GZW")
-        self.tree.heading("MILK MW", text="MILK MW")
-        self.tree.heading("MILK MW2", text="MILK MW2")
-        self.tree.heading("BEEF FW", text="BEEF FW")
-        self.tree.heading("Net daily gain", text="Net daily gain")
-        self.tree.heading("Carcass percentage", text="Carcass percentage")
-        self.tree.heading("EUROP trade class", text="EUROP trade class")
-        self.tree.heading("ÖZW", text="ÖZW")
-        self.tree.heading("FIT", text="FIT")
-        self.tree.heading("Longevity", text="Longevity")
-        self.tree.heading("Persistency", text="Persistency")
-        self.tree.heading("Yield improvement", text="Yield improvement")
-        self.tree.heading("Milking speed", text="Milking speed")
-        self.tree.heading("Udder health index", text="Udder health index")
-        self.tree.heading("Fertility index", text="Fertility index")
-        self.tree.heading("Calving ease direct", text="Calving ease direct")
-        self.tree.heading("Milking behaviour", text="Milking behaviour")
-        self.tree.heading("Somatic cell count", text="Somatic cell count")
-        self.tree.heading("Claw health index", text="Claw health index")
-        self.tree.heading("Calving ease maternal", text="Calving ease maternal")
-        self.tree.heading("Mastitis", text="Mastitis")
-        self.tree.heading("Early fert. disorders", text="Early fert. disorders")
-        self.tree.heading("Cysts", text="Cysts")
-        self.tree.heading("Milk fever", text="Milk fever")
-        self.tree.heading("Conformation info", text="Conformation info")
-        self.tree.heading("Frame", text="Frame")
-        self.tree.heading("Muscling", text="Muscling")
-        self.tree.heading("Feet & Legs", text="Feet & Legs")
-        self.tree.heading("Udder", text="Udder")
-        self.tree.heading("Cross height", text="Cross height")
-        self.tree.heading("Body length", text="Body length")
-        self.tree.heading("Hip width", text="Hip width")
-        self.tree.heading("Body depth", text="Body depth")
-        self.tree.heading("Rump angle", text="Rump angle")
-        self.tree.heading("Hock angularity", text="Hock angularity")
-        self.tree.heading("Hock develop", text="Hock develop")
-        self.tree.heading("Pasterns", text="Pasterns")
-        self.tree.heading("Hoof height", text="Hoof height")
-        self.tree.heading("Fore udder length", text="Fore udder length")
-        self.tree.heading("Rear udder length", text="Rear udder length")
-        self.tree.heading("Fore udder attachment", text="Fore udder attachment")
-        self.tree.heading("Central ligament", text="Central ligament")
-        self.tree.heading("Udder depth", text="Udder depth")
-        self.tree.heading("Teat length", text="Teat length")
-        self.tree.heading("Teat thickness", text="Teat thickness")
-        self.tree.heading("Front teat placement", text="Front teat placement")
-        self.tree.heading("Rear teat placement", text="Rear teat placement")
-        self.tree.heading("Rear teat direction", text="Rear teat direction")
-        self.tree.heading("Additional teats", text="Additional teats")
-        self.tree.pack(fill=BOTH, expand=YES)
+        # Treeview için sütunları tanımlayın
+        columns = (
+            "Name", "Ear Tag", "Born", "Breeder", "Free of", "Genetic character",
+            "Sire line", "Mother values", "gGZW", "MW", "FW", "FIT", "Longevity", 
+            "Persistency", "Yield improvement", "Milking speed", "Udder health index",
+            "Fertility index", "Calving ease direct", "Milking behaviour", 
+            "Somatic cell count", "Claw health index", "Calving ease maternal", 
+            "Mastitis", "Early fert. disorders", "Cysts", "Milk fever", "Conformation info", 
+            "Frame", "Muscling", "Feet & Legs", "Udder", "Cross height", "Body length", 
+            "Hip width", "Body depth", "Rump angle", "Hock angularity", "Hock develop", 
+            "Pasterns", "Hoof height", "Fore udder length", "Rear udder length",
+            "Fore udder attachment", "Central ligament", "Udder depth", "Teat length", 
+            "Teat thickness", "Front teat placement", "Rear teat placement", 
+            "Rear teat direction", "Additional teats"
+        )
 
-        # URL'leri listele
-        for url_data in self.urls:
-            self.tree.insert("", "end", values=(url_data['url'], "N/A", "N/A"))
+        # Treeview widget'ini oluşturun
+        self.tree = ttk.Treeview(self.frame, columns=columns, show="headings")
 
-        # Progress bar
+        # Sütun başlıklarını ayarlayın ve genişlikleri içeriğe göre dinamik ayarlayın
+        for col in columns:
+            self.tree.heading(col, text=col)
+            max_width = len(col)  # Başlık genişliği
+            self.tree.column(col, width=max_width * 10, anchor="center")  # Sütun genişliğini başlık uzunluğuna göre ayarla
+
+        # Treeview'i ekleyin ve kaydırma çubuğunu ayarlayın
+        self.tree.pack(fill="both", expand=True)
+
+        scrollbar = ttk.Scrollbar(self.frame, orient="horizontal", command=self.tree.xview)
+        scrollbar.pack(side="bottom", fill="x")
+        self.tree.config(xscrollcommand=scrollbar.set)
+        
+
+       
+        def populate_tree(self):
+        # URL'leri ve verileri Treeview'e ekleyin
+         for url_data in self.urls:
+            values = (
+                url_data.get('name', "N/A"),
+                url_data.get('ear_tag', "N/A"),
+                url_data.get('born', "N/A"),
+                url_data.get('breeder', "N/A"),
+                url_data.get('free_of', "N/A"),
+                url_data.get('genetic_character', "N/A"),
+                url_data.get('sire_line', "N/A"),
+                url_data.get('mother_values', "N/A"),
+                # Diğer veri alanlarını burada ekleyin
+            )
+            self.tree.insert("", "end", values=values)
+
+        # Treeview'e veri ekleme işlemi
+         self.populate_tree()
+          # Progress bar
         self.progress = ttk.Progressbar(self.root, orient=HORIZONTAL, length=400, mode='determinate')
-        self.progress.pack(pady=20)
-
+        self.progress.pack(pady=20)      
         button_frame = Frame(self.root)
         button_frame.pack(pady=10)
-
         Button(button_frame, text="Verileri Çek", command=self.start_scraping).pack(side=LEFT, padx=5)
         Button(button_frame, text="CSV Olarak Kaydet", command=lambda: save_data_to_file(self.urls, 'csv')).pack(side=LEFT, padx=5)
         Button(button_frame, text="Excel Olarak Kaydet", command=lambda: save_data_to_file(self.urls, 'excel')).pack(side=LEFT, padx=5)
-
     def start_scraping(self):
         thread = threading.Thread(target=self.scrape_all_data)
         thread.start()
+       
 
     def scrape_all_data(self):
         scraper = WebScraper()
@@ -397,7 +376,7 @@ class ScraperGUI:
             self.tree.set(self.tree.get_children()[i], column="Additional teats", value=data.get("Additional teats", "N/A"))
 
             update_progress_bar(self.progress, len(self.urls))
-
+            
 if __name__ == "__main__":
     root = Tk()
     app = ScraperGUI(root)
